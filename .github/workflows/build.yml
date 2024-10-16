@@ -1,0 +1,36 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  build-test-deploy:
+    name: Build, Test and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/setup-node@v2
+        with:
+            node-version: '20'
+
+      - name: Node install dependencies
+        run: npm install --force
+
+      - name: Build Angular in prod mode
+        run: npm run build:production
+
+      - name: Run unit tests
+        run: npm run test:ci
+      
+      - name: Deploy to Github Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          branch: gh-pages
+          folder: dist/angular-vitest/browser
+          clean: true
+        
